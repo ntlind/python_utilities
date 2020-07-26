@@ -1,3 +1,4 @@
+import pandas as pd
 
 def make_dir(file_path):
     """
@@ -68,7 +69,7 @@ def format_bytes(size):
   while size > power:
       size /= power
       n += 1
-  return str(__builtins__.round(size, 2)) + power_labels[n]
+  return str(round(size, 2)) + power_labels[n]
 
 
 def is_pandas_df(obj):
@@ -83,6 +84,20 @@ def is_dask_df(obj):
     Check if an object is a dask dataframe
     """
     return isinstance(obj, dd.DataFrame)
+
+
+def is_list(obj):
+    """
+    Check if an object is a list
+    """
+    return isinstance(obj, list)
+
+
+def is_string(obj):
+    """
+    Check if an object is a string
+    """
+    return isinstance(obj, str)
 
 
 def ensure_is_list(obj):

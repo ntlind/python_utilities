@@ -1,179 +1,205 @@
-from . import helpers
+from python_utilities import helpers, io
+import pandas as pd
+import numpy as np
+import os
+
+
+def compress_dataframe(df):
+    """
+    Downcast dataframe and convert objects to categories to save memory
+    """
+
+    def handle_numeric_downcast(array, type_):
+        return array.apply(pd.to_numeric, downcast=type_)
+
+    numeric_lookup_dict = {
+        "integer" : np.integer,
+        "float" : np.floating,
+        "object" : "object"
+    }
+
+    for type_ in ["integer", "float", "object"]:
+        column_list = get_columns_of_type(df, numeric_lookup_dict[type_])
+        if not column_list:
+            continue
+
+        if type_ == 'object':
+            df[column_list] = df[column_list].astype('category') 
+        else:
+            df[column_list] = handle_numeric_downcast(df[column_list], type_)
+
+
+def filter_using_multiindex(df_to_be_filtered, orig_df, filter_columns):
+    """
+    Filter one dataframe using a multiindex from another
+    """
+
+    new_index = df_to_be_filtered.set_index(filter_columns).index
+    original_index = orig_df.set_index(filter_columns).index
+
+    return df_to_be_filtered[new_index.isin(original_index)]
+
+
+def filter_using_dict(df_pd, column_dict):
+    """
+    Filter a pandas or dask dataframe using conditions supplied via a dictionary
+    """
+    filter_conditions = tuple(df_pd[column] == column_dict[column] for column in column_dict.keys())
+
+    mask = pd.DataFrame(filter_conditions).transpose().all(axis=1)
+
+    return df_pd.loc[mask]
 
 
 def remove_blank_cols(df):
+    """
+    Remove blank 'Unnamed' columns that occassionally appear when importing csvs
+    """
     return df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
-# def compress_dataframe(df):
-#   """
-#   Downcast dataframe and convert objects to categories to save memory
-#   """
-#   import numpy as np
 
-#   def handle_numeric_downcast(array, type_):
-#       return pd.to_numeric(array, downcast=type_)
-
-#   numeric_lookup_dict = {
-#       "integer" : np.integer,
-#       "float" : np.floating,
-#       "object" : "object"
-#   }
-
-#   for type_ in ["integer", "float", "object"]:
-#       column_list = df.select_dtypes(include=numeric_lookup_dict[type_])
-
-#       if type_ == 'object':
-#           df[column_list] = df[column_list].astype('category') 
-#       else:
-#           df[column_list] = handle_numeric_downcast(df[column_list], type_)
+def get_columns_of_type(df, type_):
+    """
+    Generate a list of columns from a given df that match a certain type (e.g., float)
+    """
+    return list(df.select_dtypes(include=type_).columns)
 
 
-# def filter_using_multiindex(df_to_be_filtered, orig_df, filter_columns):
-# """
-# Filter one dataframe using a multiindex from another
-# """
-
-# new_index = df_to_be_filtered.set_index(filter_columns).index
-# original_index = orig_df.set_index(filter_columns).index
-
-# return df_to_be_filtered[new_index.isin(original_index)]
+def get_memory_usage(pandas_df):
+    """
+    Returns the number of bytes used by a pandas dataframe
+    """
+    return pandas_df.memory_usage(deep=True).sum()
 
 
-# def filter_using_dict(df_pd, column_dict):
-# """
-# Filter a pandas or dask dataframe using conditions supplied via a dictionary
-# """
-# filter_conditions = tuple(df_pd[column] == column_dict[column] for column in column_dict.keys())
-
-# mask = pd.DataFrame(filter_conditions).transpose().all(axis=1)
-
-# return df_pd.loc[mask]
+def print_memory_usage(pandas_df):
+    """
+    Returns the number of bytes used by a pandas dataframe in a formatted string
+    """
+    return helpers.format_bytes(get_memory_usage(pandas_df))
 
 
-# def get_memory_usage(pandas_df):
-# """
-# Returns the number of bytes used by a pandas dataframe
-# """
-# return pandas_df.memory_usage().sum()
+def merge_by_concat(big_df, small_df, index_columns, how='left'):
+    """
+    Merge two dataframes by concatenation. Avoids trying to join two high-dimensionality dataframes in memory
+    by joining them on an index and then adding in the other columns later.
+    """
+
+    merged_df = big_df[index_columns].merge(small_df, on=index_columns, how=how)
+    merged_df.drop(index_columns, axis=1, inplace=True)
+
+    return pd.concat([big_df, merged_df], axis=1)
 
 
-# def print_memory_usage(pandas_df):
-# """
-# Returns the number of bytes used by a pandas dataframe in a formatted string
-# """
-# return format_bytes(get_memory_usage(pandas_df))
+def concatenate_dfs(df1, df2):
+    """
+    Safely concatenates dataframes, handling for the different treatment between panda and dask implementations
+    """
+    from python_utilities.helpers import is_dask_df, is_pandas_df
+
+    if is_pandas_df(df1) & is_pandas_df(df2):
+        return pd.concat([df1, df2])
+
+    elif is_dask_df(df1) & is_dask_df(df2):
+        return dd.concat([df1, df2])
+
+    else:
+        raise InputError("DataFrames of the wrong class or of different classes")
 
 
-# # TODO requires testing
-# # def merge_by_concat(big_df, small_df, index_columns=None, how='left'):
-# #   """
-# #   Merge two dataframes by concatenation. Avoids trying to join two high-dimensionality dataframes in memory
-# #   by joining them on an index and then adding in the other columns later.
-# #   """
+def index_features(df, path_spec=None, name='index_mapping'):
+    """
+    Index string columns and return a DataFrame that is ready for modeling.
+    """
 
-# #   if not index_columns:
-# #     index_columns = big_df[get_hierarchy() + [TIME_VAR]]
+    def factorize_columns(pandas_df, columns):
+        """
+        Transforms string or category columns into factors (e.g., replacing all of the strings with an integer encoding, i.e. dummy variable)
+        and outputs a label dict for future use
+        """
 
-# #   merged_df = big_df[index_columns].merge(small_df, on=index_columns, how=how)
-# #   merged_df.drop(index_columns, axis=1, inplace=True)
+        def factorize_column(series):
+            array, labels = series.factorize()
+            return {'array':array, "labels": list(labels)}
 
-# #   return pd.concat([big_df, merged_df], axis=1)
+        label_dict = {}
 
+        for column in columns:
+            factorize_dict = factorize_column(pandas_df[column])
+            pandas_df[column + "_index"] = pd.to_numeric(factorize_dict['array'], downcast='integer')    
 
-# def concatenate_dfs(df1, df2):
-# """
-# Safely concatenates dataframes, handling for the different treatment between panda and dask implementations
-# """
-# if is_pandas_df(df1) & is_pandas_df(df2):
-#   return pd.concat([df1, df2])
+            label_dict.update({column + "_index" : factorize_dict['labels']})
 
-# elif is_dask_df(df1) & is_dask_df(df2):
-#   return dd.concat([df1, df2])
-  
-# else:
-#   raise InputError("DataFrames of the wrong class or of differnet classes")
+        return pandas_df, label_dict
+    
+    string_features = get_columns_of_type(df, ['object', 'category'])
+    assert string_features, "No object or category columns found."
 
+    factorized_df, labels = factorize_columns(df, string_features)  
+    new_columns = [col + '_index' for col in string_features]
+    
+    mapping_array = (factorized_df[string_features + new_columns]).drop_duplicates()
 
-# #TODO gross
-# def update_time(series_or_int, adjustment, time_unit='weeks', datetime_format="%Y%U-%w"):
-#   """
-#   Correctly adds or subtracts units from a time period
-#   """  
-#   casted_series = pd.Series(series_or_int).astype(str)
-  
-#   adjustment_delta = pd.DateOffset(**{self.TIME_INCREMENT:adjustment})  
-#   adjusted_series = (datetime_series + adjustment_delta)
-  
-#   final_series = adjusted_series.dt.strftime(self.TIME_FORMAT)\
-#                                   .astype(int)
-  
-#   return final_series
+    path = os.path.abspath(os.path.join(os.path.dirname('.'), 'mappings/' + name + '.pkl'))
+
+    io.save_df(mapping_array, path)
+
+    factorized_df.drop(string_features, inplace=True, axis=1)  
+
+    return factorized_df
 
 
+def deindex_features(df, name='index_mapping'):
+    """
+    Deindex columns in a dataframe using a pre-saved array
+    """
+    path = os.path.abspath(os.path.join(os.path.dirname('.'), 'mappings/' + name + '.pkl'))
+
+    mapping_array = io.load_df(path)
+
+    indexed_features = [col for col in list(df.columns) if "_index" in col]
+    mapped_indexed_features = [col for col in list(mapping_array.columns) if "_index" in col]
+
+    missing_from_mapping_array = [col for col in indexed_features if col not in mapped_indexed_features]
+    if missing_from_mapping_array:
+        print("The following columns are missing in your mapping array and won't be deindexed: %s" % missing_from_mapping_array)
+
+    deindexed_df = df.merge(mapping_array, on=mapped_indexed_features, how='inner')
+    deindexed_df = deindexed_df.drop(mapped_indexed_features, axis=1)
+
+    return deindexed_df
 
 
-# def update_time(series_or_int, adjustment, time_unit='weeks', datetime_format="%Y%U-%w"):
-# """
-# Correctly adds or subtracts units from a time period
-# """  
+def distribute_dask_df():
+    """
+    Distribute a dask dataframe over a client that's accessible via the global DASK_CLIENT
+    """
+    global DASK_CLIENT
+    DASK_CLIENT = Client()
 
-# # we may want to treat time periods as a monotonically increasing integer
-# # without breaking all of our other functions
-# if time_unit == "int":
-#   return series_or_int + adjustment
+    dask_df = DASK_CLIENT.persist(dask_df)
 
-# casted_series = pd.Series(series_or_int).astype(str)
+    return dask_df
 
-# # get datetime col
-# if datetime_format in ["%Y%U-%w", "%Y%W-%w"]:
-#   datetime_series = pd.to_datetime(casted_series.astype(str) + '-1', format=datetime_format)
-# else:
-#   datetime_series = pd.to_datetime(casted_series.astype(str), format=datetime_format)
-  
-# # make adjustment
-# adjustment_delta = pd.DateOffset(**{time_unit:adjustment})  
-# adjusted_series = (datetime_series + adjustment_delta)
-
-# # return the series in the original
-# final_series = adjusted_series.dt.strftime(datetime_format)
-
-# if datetime_format in ["%Y%U-%w", "%Y%W-%w"]:
-#   final_series = final_series.str.extract(r'(.*)-\d+', expand=False).astype(int)
-# else:
-#   final_series = final_series.astype(int)
-  
-# if isinstance(series_or_int, (int, np.integer)): 
-#   assert final_series.shape == (1,)
-#   return final_series[0]
-
-# return final_series
+    
+def profile_dask_client():
+  """
+  Print scheduler statistics
+  """
+  assert DASK_CLIENT, "No dask client has been defined globally."
+  return DASK_CLIENT.profile()
 
 
-# #TODO move down
-# def convert_pandas_to_dask(df, npartitions=4, partition_size="100MB", distributed=True, *ars, **kwargs):
-#   """
-#   Convert a pandas dataframe to a distributed dask dataframe, enabling lazy evaluation that can be prompted using .compute() or .persist()
-#   """
-#   from dask.distributed import Client
+def convert_pandas_to_dask(df, npartitions=4, partition_size="100MB", *args, **kwargs):
+  """
+  Convert a pandas dataframe to a distributed dask dataframe, enabling lazy evaluation that can be prompted using .compute() or .persist()
+  """
+  from dask.distributed import Client
 
-#   dask_df = dd.from_pandas(df, npartitions=npartitions, *args, **kwargs)
+  dask_df = dd.from_pandas(df, npartitions=npartitions, *args, **kwargs)
 
-#   if partition_size:
-#       dask_df = dask_df.repartition(partition_size=partition_size)
-  
-#   if distributed:    
-#       global DASK_CLIENT
-#       DASK_CLIENT = Client()
-      
-#       dask_df = DASK_CLIENT.persist(dask_df)
+  if partition_size:
+      dask_df = dask_df.repartition(partition_size=partition_size)   
 
-#   return dask_df
-
-
-# def profile_dask_client():
-#   """
-#   Print scheduler statistics
-#   """
-#   assert DASK_CLIENT, "No dask client has been defined globally."
-#   return DASK_CLIENT.profile()
+  return dask_df
 

@@ -1,2 +1,5 @@
-
+.vscode/
+mappings/
+quick_saves/
+python_utilities/__pyache__
 *.pkl
