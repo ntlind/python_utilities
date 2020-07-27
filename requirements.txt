@@ -1,6 +1,7 @@
 pandas
 numpy
 dask
+fsspec 
 distributed
 toolz
 pytest
