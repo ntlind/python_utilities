@@ -19,8 +19,7 @@ def test_pandas_io():
     # saving
     io.save_df(example_df, pd_output_path, pkg="pandas", file_format='.csv')
     os.remove(pd_output_path)
-    print(f"Removed from {pd_output_path}") # noqa
-
+    
     # quick_saving
     io.quick_save(example_df)
 
