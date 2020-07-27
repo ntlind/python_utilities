@@ -1,9 +1,9 @@
 import sys
 import os
 import pandas as pd
-from python_utilities import timeseries, testing
 
 sys.path.append(os.path.join(os.path.dirname(sys.path[0])))
+from python_utilities import timeseries, testing # noqa
 
 
 def test_update_time():

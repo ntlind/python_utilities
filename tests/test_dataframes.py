@@ -1,10 +1,9 @@
-from python_utilities import dataframes, testing, helpers
-
 import sys
 import pandas as pd
 import os
 
 sys.path.append(os.path.join(os.path.dirname(sys.path[0])))
+from python_utilities import dataframes, testing, helpers # noqa
 
 
 def test_remove_blank_cols():

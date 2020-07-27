@@ -1,9 +1,8 @@
-from python_utilities import io
-
 import sys
 import os
 
 sys.path.append(os.path.join(os.path.dirname(sys.path[0])))
+from python_utilities import io # noqa
 
 
 def test_pandas_io():
