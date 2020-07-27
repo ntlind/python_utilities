@@ -8,7 +8,7 @@ def get_test_example():
     """
 
     column_names = [
-        "week",
+        "datetime",
         "category",
         "sale_int",
         "product",

@@ -64,8 +64,8 @@ def test_concatenate_dfs():
 
     concat_df = dataframes.concatenate_dfs(test_df, duplicate_df)
 
-    answer = list(test_df[['week']]) * 2
-    result = list(concat_df[['week']])
+    answer = list(test_df[['datetime']]) * 2
+    result = list(concat_df[['datetime']])
 
     assert all([a == b for a, b in zip(answer, result)])
 
@@ -91,7 +91,7 @@ def test_index_features():
         [5, 1, 1, 0, 0],
         [0, 1, 1, 0, 0],
         [1, 1, 1, 0, 0],
-    ], columns=['week_index', 'category_index', 'product_index', 'state_index', 'store_index'])
+    ], columns=['datetime_index', 'category_index', 'product_index', 'state_index', 'store_index'])
 
     indexed_columns = [col for col in indexed_df.columns if "_index" in col]
     assert (indexed_df[indexed_columns].values == answer_df.values).all()
@@ -110,13 +110,17 @@ def test_deindex_features():
         [5, 1, 1, 0, 0],
         [0, 1, 1, 0, 0],
         [1, 1, 1, 0, 0],
-    ], columns=['week_index', 'category_index', 'product_index', 'state_index', 'store_index'])
+    ], columns=['datetime_index', 'category_index', 'product_index', 'state_index', 'store_index'])
 
     result_df = dataframes.deindex_features(initial_df)
 
-    answer_df = testing.get_test_example()[['week', 'category', 'product', 'state', 'store']]   
+    answer_df = testing.get_test_example()[['datetime', 'category', 'product', 'state', 'store']]   
 
     assert (result_df.values == answer_df.values).all()
+
+def test_convert_pandas_to_dask():
+    # tested as part of integration tests in test_helpers.py
+    pass
 
 
 if __name__ == "__main__":

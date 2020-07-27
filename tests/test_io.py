@@ -34,11 +34,11 @@ def test_dask_io():
     from python_utilities.dataframes import remove_blank_cols
 
     input_path = os.path.abspath(os.path.join(os.path.curdir, 'tests/data/sample_data.csv'))
-    pd_output_path = os.path.abspath(os.path.join(os.path.curdir, 'tests/data/test_sample.csv'))
+    output_path = os.path.abspath(os.path.join(os.path.curdir, 'tests/data/test_sample.csv'))
 
     example_df = io.load_df(input_path, pkg='dask', file_format='.csv')
     
-    io.save_df(example_df, pd_output_path, pkg='dask', file_format='.csv', single_file=True)
+    io.save_df(example_df, output_path, pkg='dask', file_format='.csv', single_file=True)
 
     io.quick_save(example_df, file_format='.csv', pkg='dask', single_file=True)
 
@@ -49,8 +49,8 @@ def test_dask_io():
 
     assert example_df.shape == quick_df.shape
 
-    os.remove(pd_output_path)
-    print(f'Removed from {pd_output_path}')
+    os.remove(output_path)
+    print(f'Removed from {output_path}')
 
 
 def test_dict_io():
@@ -70,9 +70,8 @@ def test_dict_io():
 
     os.remove(path)
     
-if if __name__ == "__main__":
+    
+if __name__ == "__main__":
     test_pandas_io()
     test_dask_io()
-    test_dict_io()
-    test_load_all_dfs_from_path()
-    
+    test_dict_io()    

@@ -1,4 +1,5 @@
 import pandas as pd
+import dask.dataframe as dd
 
 def make_dir(file_path):
     """
@@ -66,7 +67,7 @@ def format_bytes(size):
   power = 2**10
   n = 0
   power_labels = {0 : ' bytes', 1: 'KB', 2: 'MB', 3: 'GB', 4: 'TB'}
-  while size > power:
+  while size >= power:
       size /= power
       n += 1
   return str(round(size, 2)) + power_labels[n]
@@ -100,6 +101,14 @@ def is_string(obj):
     return isinstance(obj, str)
 
 
+def is_datetime_series(obj):
+    """
+    Check if an object is a Datetime64 series
+    """
+    import pandas.api.types as ptypes
+    return ptypes.is_datetime64_any_dtype(obj)
+
+
 def ensure_is_list(obj):
     """
     Return an object in a list if not already wrapped. Useful when you want to treat an object as a collection, \
@@ -119,7 +128,7 @@ def correct_suffixes_in_list(input_pd, lst, substring='_index'):
   
   missing_from_dataframe = [item for item in lst if item not in dataframe_columns]
   
-  corrected = [item for substring in missing_from_dataframe for item in dataframe_columns if item.startswith(substring)]  
+  corrected = [item.split(substring)[0] for item in missing_from_dataframe if item.endswith(substring)]  
   
   assert len(missing_from_dataframe) == len(corrected), "Not able to correct all missing items in grouping list. \n List 1: % s \n List 2: %s" % (missing_from_dataframe, corrected)
   
@@ -127,7 +136,7 @@ def correct_suffixes_in_list(input_pd, lst, substring='_index'):
     lst.extend(corrected)
     lst = [item for item in lst if item not in missing_from_dataframe]
   
-  return lst   
+  return list(lst)   
 
 
 def run_function_in_parallel(func, t_split):

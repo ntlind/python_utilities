@@ -2,9 +2,12 @@ import os
 import dask.dataframe as dd
 import pandas as pd    
 import numpy as np
-from . import helpers
+from python_utilities import helpers
 
 def _get_pd_io_methods():
+    """
+    Returns a dictionary of functions to save/load files using pandas
+    """
     method_dict = {
         '.pkl': {
             'write': pd.DataFrame.to_pickle,
@@ -24,6 +27,9 @@ def _get_pd_io_methods():
 
 
 def _get_dd_io_methods():
+    """
+    Returns a dictionary of functions to save/load files using dask
+    """
     method_dict = {
         '.pkl': {
             'write': NotImplementedError,
