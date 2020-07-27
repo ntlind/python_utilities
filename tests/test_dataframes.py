@@ -52,7 +52,7 @@ def test_merge_by_concat():
     )
 
     merged_df = dataframes.merge_by_concat(
-        test_df, small_df, index_columns=["category"]
+        test_df, small_df, index_cols=["category"]
     )
 
     answer = ["A"] * 4 + ["B"] * 4
