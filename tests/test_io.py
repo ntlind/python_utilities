@@ -54,7 +54,6 @@ def test_dask_io():
     assert example_df.shape == quick_df.shape
 
     os.remove(output_path)
-    print(f"Removed from {output_path}")
 
 
 def test_dict_io():
