@@ -1,6 +1,6 @@
-dask @ file:///tmp/build/80754af9/dask-core_1594156306305/work
+dask==2.21.0
 numpy==1.18.5
-pandas @ file:///C:/ci/pandas_1592841747005/work
+pandas==1.1.0
 psutil==5.7.0
 pytest==5.4.3
 pytest-cov==2.10.0
