@@ -2,6 +2,7 @@
 
 ![python_utilities](https://github.com/ntlind/python_utilities/workflows/build/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code Coverage](https://codecov.io/gh/ntlind/python_utilities/branch/master/graph/badge.svg)](https://codecov.io/gh/ntlind/python_utilities)
 
 ## Purpose
 
