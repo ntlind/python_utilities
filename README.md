@@ -1,6 +1,6 @@
 # python_utilities
 
-![python_utilities](https://github.com/ntlind/python_utilities/workflows/Python_package/badge.svg)
+![python_utilities](https://github.com/ntlind/python_utilities/workflows/Python%20package/badge.svg)
 
 
  A consolidated list of my favorite utilities functions
