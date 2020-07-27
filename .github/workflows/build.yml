@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Python package
+name: build
 
 on:
   push:
@@ -35,6 +35,8 @@ jobs:
         flake8 . --count --select=F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
-      run: |
-        pytest
+    - name: Codecov
+      uses: codecov/codecov-action@v1.0.12
+      with:
+        token: a6b9e6d5-8340-42fb-8872-4379b5a0c311
+        env_vars: PYTHON

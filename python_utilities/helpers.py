@@ -38,8 +38,8 @@ def remove_files_in_dir(path):
 
 def format_bytes(size):
     """
-  Takes a byte size (int) and returns a formatted, human-interpretable string
-  """
+    Takes a byte size (int) and returns a formatted, human-interpretable string
+    """
     # 2**10 = 1024
     power = 2 ** 10
     n = 0
@@ -128,8 +128,8 @@ def correct_suffixes_in_list(input_pd, lst, substring="_index"):
 
 def run_function_in_parallel(func, t_split):
     """
-  Multiprocess a python function using Pool
-  """
+    Multiprocess a python function using Pool
+    """
     from multiprocessing import Pool
     import psutil
 
