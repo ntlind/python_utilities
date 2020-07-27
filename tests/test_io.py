@@ -7,17 +7,17 @@ from python_utilities import io # noqa
 
 def test_pandas_io():
     input_path = os.path.abspath(
-        os.path.join(os.path.curdir, "tests/data/sample_data.pkl")
+        os.path.join(os.path.curdir, "tests/data/sample_data.csv")
     )
     pd_output_path = os.path.abspath(
-        os.path.join(os.path.curdir, "tests/data/test_sample.pkl")
+        os.path.join(os.path.curdir, "tests/data/test_sample.csv")
     )
 
     # loading
-    example_df = io.load_df(input_path, pkg="pandas")
+    example_df = io.load_df(input_path, pkg="pandas", file_format='.csv')
 
     # saving
-    io.save_df(example_df, pd_output_path, pkg="pandas")
+    io.save_df(example_df, pd_output_path, pkg="pandas", file_format='.csv')
     os.remove(pd_output_path)
     print(f"Removed from {pd_output_path}") # noqa
 
