@@ -1,8 +1,8 @@
-from python_utilities import helpers, io
 import pandas as pd
 import numpy as np
 import dask.dataframe as dd
 import os
+from python_utilities import helpers, io
 
 
 def compress_dataframe(df):
@@ -14,9 +14,9 @@ def compress_dataframe(df):
         return array.apply(pd.to_numeric, downcast=type_)
 
     numeric_lookup_dict = {
-        "integer" : np.integer,
-        "float" : np.floating,
-        "object" : "object"
+        "integer": np.integer,
+        "float": np.floating,
+        "object": "object",
     }
 
     for type_ in ["integer", "float", "object"]:
@@ -24,8 +24,8 @@ def compress_dataframe(df):
         if not column_list:
             continue
 
-        if type_ == 'object':
-            df[column_list] = df[column_list].astype('category') 
+        if type_ == "object":
+            df[column_list] = df[column_list].astype("category")
         else:
             df[column_list] = handle_numeric_downcast(df[column_list], type_)
 
@@ -43,9 +43,11 @@ def filter_using_multiindex(df_to_be_filtered, orig_df, filter_columns):
 
 def filter_using_dict(df_pd, column_dict):
     """
-    Filter a pandas or dask dataframe using conditions supplied via a dictionary
+    Filter a pandas or dask dataframe using conditions supplied via a dict
     """
-    filter_conditions = tuple(df_pd[column] == column_dict[column] for column in column_dict.keys())
+    filter_conditions = tuple(
+        df_pd[column] == column_dict[column] for column in column_dict.keys()
+    )
 
     mask = pd.DataFrame(filter_conditions).transpose().all(axis=1)
 
@@ -54,14 +56,14 @@ def filter_using_dict(df_pd, column_dict):
 
 def remove_blank_cols(df):
     """
-    Remove blank 'Unnamed' columns that occassionally appear when importing csvs
+    Remove blank 'Unnamed' columns that occassionally appear when importing csv
     """
-    return df.loc[:, ~df.columns.str.contains('^Unnamed')]
+    return df.loc[:, ~df.columns.str.contains("^Unnamed")]
 
 
 def get_columns_of_type(df, type_):
     """
-    Generate a list of columns from a given df that match a certain type (e.g., float)
+    Generate a list of columns from a given df that match a certain type
     """
     return list(df.select_dtypes(include=type_).columns)
 
@@ -75,26 +77,28 @@ def get_memory_usage(pandas_df):
 
 def print_memory_usage(pandas_df):
     """
-    Returns the number of bytes used by a pandas dataframe in a formatted string
+    Returns the number of bytes used by a pd df in a formatted string
     """
     return helpers.format_bytes(get_memory_usage(pandas_df))
 
 
-def merge_by_concat(big_df, small_df, index_columns, how='left'):
+def merge_by_concat(big_df, small_df, index_cols, how="left"):
     """
-    Merge two dataframes by concatenation. Avoids trying to join two high-dimensionality dataframes in memory
-    by joining them on an index and then adding in the other columns later.
+    Merge two dataframes by concatenation. Avoids trying to join two
+    high-dimensionality dataframes in memory by joining them on an 
+    index and then adding in the other columns later.
     """
 
-    merged_df = big_df[index_columns].merge(small_df, on=index_columns, how=how)
-    merged_df.drop(index_columns, axis=1, inplace=True)
+    merged_df = big_df[index_cols].merge(small_df, on=index_cols, how=how)
+    merged_df.drop(index_cols, axis=1, inplace=True)
 
     return pd.concat([big_df, merged_df], axis=1)
 
 
 def concatenate_dfs(df1, df2):
     """
-    Safely concatenates dataframes, handling for the different treatment between panda and dask implementations
+    Safely concatenates dataframes, handling for the different treatment 
+    between panda and dask implementations
     """
     from python_utilities.helpers import is_dask_df, is_pandas_df
 
@@ -105,76 +109,97 @@ def concatenate_dfs(df1, df2):
         return dd.concat([df1, df2])
 
     else:
-        raise InputError("DataFrames of the wrong class or of different classes")
+        raise Exception("DataFrames of wrong class or of different classes")
 
 
-def index_features(df, path_spec=None, name='index_mapping'):
+def index_features(df, path_spec=None, name="index_mapping"):
     """
     Index string columns and return a DataFrame that is ready for modeling.
     """
 
     def factorize_columns(pandas_df, columns):
         """
-        Transforms string or category columns into factors (e.g., replacing all of the strings with an integer encoding, i.e. dummy variable)
+        Transforms string or category columns into factors (e.g., replacing 
+        all of the strings with an integer encoding, i.e. dummy variable)
         and outputs a label dict for future use
         """
 
         def factorize_column(series):
             array, labels = series.factorize()
-            return {'array':array, "labels": list(labels)}
+            return {"array": array, "labels": list(labels)}
 
         label_dict = {}
 
         for column in columns:
             factorize_dict = factorize_column(pandas_df[column])
-            pandas_df[column + "_index"] = pd.to_numeric(factorize_dict['array'], downcast='integer')    
+            pandas_df[column + "_index"] = pd.to_numeric(
+                factorize_dict["array"], downcast="integer"
+            )
 
-            label_dict.update({column + "_index" : factorize_dict['labels']})
+            label_dict.update({column + "_index": factorize_dict["labels"]})
 
         return pandas_df, label_dict
-    
-    string_features = get_columns_of_type(df, ['object', 'category'])
+
+    string_features = get_columns_of_type(df, ["object", "category"])
     assert string_features, "No object or category columns found."
 
-    factorized_df, labels = factorize_columns(df, string_features)  
-    new_columns = [col + '_index' for col in string_features]
-    
-    mapping_array = (factorized_df[string_features + new_columns]).drop_duplicates()
+    factorized_df, labels = factorize_columns(df, string_features)
+    new_columns = [col + "_index" for col in string_features]
 
-    path = os.path.abspath(os.path.join(os.path.dirname('.'), 'mappings/' + name + '.pkl'))
+    mapping_array = factorized_df[string_features + new_columns]\
+        .drop_duplicates()
+
+    path = os.path.abspath(
+        os.path.join(os.path.dirname("."), "mappings/" + name + ".pkl")
+    )
 
     io.save_df(mapping_array, path)
 
-    factorized_df.drop(string_features, inplace=True, axis=1)  
+    factorized_df.drop(string_features, inplace=True, axis=1)
 
     return factorized_df
 
 
-def deindex_features(df, name='index_mapping'):
+def deindex_features(df, name="index_mapping"):
     """
     Deindex columns in a dataframe using a pre-saved array
     """
-    path = os.path.abspath(os.path.join(os.path.dirname('.'), 'mappings/' + name + '.pkl'))
+    path = os.path.abspath(
+        os.path.join(os.path.dirname("."), "mappings/" + name + ".pkl")
+    )
 
     mapping_array = io.load_df(path)
 
     indexed_features = [col for col in list(df.columns) if "_index" in col]
-    mapped_indexed_features = [col for col in list(mapping_array.columns) if "_index" in col]
+    mapped_indexed_features = [
+        col for col in list(mapping_array.columns) if "_index" in col
+    ]
 
-    missing_from_mapping_array = [col for col in indexed_features if col not in mapped_indexed_features]
+    missing_from_mapping_array = [
+        col for col in indexed_features if col not in mapped_indexed_features
+    ]
     if missing_from_mapping_array:
-        print("The following columns are missing in your mapping array and won't be deindexed: %s" % missing_from_mapping_array)
+        print(
+            "The following columns are missing in your mapping array \
+                and won't be deindexed: %s"
+            % missing_from_mapping_array
+        )
 
-    deindexed_df = df.merge(mapping_array, on=mapped_indexed_features, how='inner')
+    deindexed_df = df.merge(mapping_array, 
+                            on=mapped_indexed_features, 
+                            how="inner")                           
     deindexed_df = deindexed_df.drop(mapped_indexed_features, axis=1)
 
     return deindexed_df
 
 
-def distribute_dask_df():
+def distribute_dask_df(dask_df):
     """
-    Distribute a dask dataframe over a client that's accessible via the global DASK_CLIENT
+    Distribute a dask dataframe over a client that's accessible via
+    the global DASK_CLIENT
     """
+    from distributed import Client
+
     global DASK_CLIENT
     DASK_CLIENT = Client()
 
@@ -182,25 +207,27 @@ def distribute_dask_df():
 
     return dask_df
 
-    
+
 def profile_dask_client():
-  """
+    """
   Print scheduler statistics
   """
-  assert DASK_CLIENT, "No dask client has been defined globally."
-  return DASK_CLIENT.profile()
+    assert DASK_CLIENT, "No dask client has been defined globally."
+    return DASK_CLIENT.profile()
 
 
-def convert_pandas_to_dask(df, npartitions=4, partition_size="100MB", *args, **kwargs):
-  """
-  Convert a pandas dataframe to a distributed dask dataframe, enabling lazy evaluation that can be prompted using .compute() or .persist()
-  """
-  from dask.distributed import Client
+def convert_pandas_to_dask(df, npartitions=4, partition_size="100MB",
+                           *args, **kwargs):
 
-  dask_df = dd.from_pandas(df, npartitions=npartitions, *args, **kwargs)
+    """
+    Convert a pandas dataframe to a distributed dask dataframe, enabling
+    lazy evaluation that can be prompted using .compute() or .persist()
+    """
 
-  if partition_size:
-      dask_df = dask_df.repartition(partition_size=partition_size)   
+    dask_df = dd.from_pandas(df, npartitions=npartitions)
 
-  return dask_df
+    if partition_size:
+        dask_df = dask_df.repartition(partition_size=partition_size)
+
+    return dask_df
 

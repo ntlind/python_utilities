@@ -1,22 +1,16 @@
-
-import sys 
+from python_utilities import helpers, testing, dataframes
+import sys
 import os
+import pandas as pd
+
 sys.path.append(os.path.join(os.path.dirname(sys.path[0])))
 
-import numpy as np
-import pandas as pd
-import dask.dataframe as dd
 
-from python_utilities import helpers, testing, dataframes
-
-import pandas as pd
-
-        
 def test_format_bytes():
-    assert helpers.format_bytes(5368709120) == "5.0GB", print(helpers.format_bytes(5368709120))
-    assert helpers.format_bytes(1024) == "1.0KB", print(helpers.format_bytes(1024))
-    assert helpers.format_bytes(124213) == "121.3KB", print(helpers.format_bytes(124213))
-  
+    assert helpers.format_bytes(5368709120) == "5.0GB"
+    assert helpers.format_bytes(1024) == "1.0KB"
+    assert helpers.format_bytes(124213) == "121.3KB"
+
 
 def test_is_pandas_df():
     assert helpers.is_pandas_df(testing.get_test_example())
@@ -41,19 +35,21 @@ def test_is_string():
 
 
 def test_is_datetime_series():
-    example = pd.Series([
-        "2020-01-08",
-        "2020-01-09",
-        "2020-01-10",
-        "2020-01-11",
-        "2020-01-06",
-        "2020-01-07",
-        "2020-01-08",
-        "2020-01-09",
-        ])
+    example = pd.Series(
+        [
+            "2020-01-08",
+            "2020-01-09",
+            "2020-01-10",
+            "2020-01-11",
+            "2020-01-06",
+            "2020-01-07",
+            "2020-01-08",
+            "2020-01-09",
+        ]
+    )
 
     assert not helpers.is_datetime_series(example)
-    
+
     example = pd.to_datetime(example)
     assert helpers.is_datetime_series(example)
 
@@ -68,10 +64,10 @@ def test_correct_suffixes_in_list():
     answer = list(pandas_df.columns).copy()
     result = helpers.correct_suffixes_in_list(pandas_df, pandas_df.columns)
     assert result == answer
-    
+
     index_list = [col + "_index" for col in pandas_df.columns]
-    result = helpers.correct_suffixes_in_list(pandas_df, index_list) 
-    assert result == answer 
+    result = helpers.correct_suffixes_in_list(pandas_df, index_list)
+    assert result == answer
 
 
 if __name__ == "__main__":
@@ -83,4 +79,4 @@ if __name__ == "__main__":
     test_is_datetime_series()
     test_ensure_is_list()
     test_correct_suffixes_in_list()
-    
+

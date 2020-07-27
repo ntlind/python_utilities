@@ -1,8 +1,9 @@
 import os
 import dask.dataframe as dd
-import pandas as pd    
+import pandas as pd  
 import numpy as np
 from python_utilities import helpers
+
 
 def _get_pd_io_methods():
     """
@@ -87,11 +88,13 @@ def load_df(path, file_format='.pkl', pkg='pandas', *args, **kwargs):
     return df
 
 
-def quick_save(df, name='quick_save', file_format='.pkl', pkg='pandas', *args, **kwargs):
+def quick_save(df, name='quick_save', file_format='.pkl', 
+               pkg='pandas', *args, **kwargs):
     """
     Quickly save a file in an subfolder within your working directory
     """
-    path = os.path.abspath(os.path.join(os.path.dirname('.'), 'quick_saves/' + name))
+    path = os.path.abspath(os.path.join(os.path.dirname('.'), 
+                                        'quick_saves/' + name))
     save_df(df, path, file_format=file_format, pkg=pkg, *args, **kwargs)
 
 
@@ -99,7 +102,8 @@ def quick_load(name='quick_save', file_format='.pkl', pkg='pandas'):
     """
     Quickly load a file from your 'quick_saves' subdirectory
     """
-    path = os.path.abspath(os.path.join(os.path.dirname('.'), 'quick_saves/' + name + file_format))
+    path = os.path.abspath(os.path.join(os.path.dirname('.'), 
+                                        'quick_saves/' + name + file_format))
     df = load_df(path, file_format=file_format, pkg=pkg)
     return df
 
