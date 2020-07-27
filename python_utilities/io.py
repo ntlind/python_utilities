@@ -112,7 +112,7 @@ def save_dict(dict_obj, path):
     """
     Save dictionary as numpy file
     """
-    assert path[-4:] == '.npy', f'Missing the .npy extension!{path[-3:]}'
+    assert path[-4:] == '.npy', 'Missing the .npy extension!'
 
     np.save(os.path.expanduser(path), dict_obj)
 
