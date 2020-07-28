@@ -10,7 +10,7 @@ This module contains my most commonly-used python functions, split into various 
 
 - `io`: saving and loading pandas DataFrames, dask DataFrames, and dicts
 - `dataframes`: filtering, transforming, and compressing pandas and dask dataframes
-- `timeseries`: datetime-specific functions for handling  with time-series data
+- `timeseries`: datetime-specific functions for handling timeseries data
 - `helpers`: various utility functions, including is_ checks and OS shortcuts
 - `testing`: sample dataframes and profilers that I use in testing
 
