@@ -73,5 +73,27 @@ def test_update_time():
     check_answer()
 
 
+def test_fill_missing_timeseries():
+    test_pd = testing.get_test_example()
+    test_pd.loc[3, 'datetime'] = '2020-01-05'
+    test_pd['datetime'] = pd.to_datetime(test_pd['datetime'])
+
+    grouping_cols = ['category', 'product', 'state', 'store']
+    result = timeseries.fill_missing_timeseries(test_pd, 
+                                                grouping_cols=grouping_cols)
+    answer = pd.to_datetime([
+        '2019-12-30', 
+        '2019-12-31', 
+        '2020-01-01', 
+        '2020-01-02', 
+        '2020-01-03', 
+        '2020-01-04', 
+        '2020-01-05'
+        ] * 2)
+
+    assert (result['datetime'] == answer).all()
+
+
 if __name__ == "__main__":
     test_update_time()
+    test_fill_missing_timeseries()
