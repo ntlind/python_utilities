@@ -231,3 +231,15 @@ def convert_pandas_to_dask(df, npartitions=4, partition_size="100MB",
 
     return dask_df
 
+
+def auto_convert_datetime(df):
+    """
+    Try to auto-convert a datetime column (usually upon import)
+    """
+    for col in df.columns:
+        if df[col].dtype in ['object']:
+            try:
+                df[col] = pd.to_datetime(df[col])
+            except ValueError:
+                pass
+    return df

@@ -146,6 +146,16 @@ def test_convert_pandas_to_dask():
     pass
 
 
+def test_auto_convert_datetime():
+    test_df = testing.get_test_example()
+    assert test_df['datetime'].dtype in ['object']
+
+    test_df = dataframes.auto_convert_datetime(test_df)
+
+    assert helpers.is_datetime_series(test_df['datetime'])
+
+
+
 if __name__ == "__main__":
     test_remove_blank_cols()
     test_compress_dataframe()
@@ -156,3 +166,4 @@ if __name__ == "__main__":
     test_print_memory_usage()
     test_index_features()
     test_deindex_features()
+    test_auto_convert_datetime()
