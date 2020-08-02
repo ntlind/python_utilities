@@ -210,8 +210,8 @@ def distribute_dask_df(dask_df):
 
 def profile_dask_client():
     """
-    Print scheduler statistics
-    """
+  Print scheduler statistics
+  """
     assert DASK_CLIENT, "No dask client has been defined globally."
     return DASK_CLIENT.profile()
 
