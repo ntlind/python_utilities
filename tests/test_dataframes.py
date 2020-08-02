@@ -3,12 +3,7 @@ import pandas as pd
 import os
 
 sys.path.append(os.path.join(os.path.dirname(sys.path[0])))
-from python_utilities import dataframes, testing, helpers # noqa
-
-
-def test_remove_blank_cols():
-    # tested this function as part of test_dask_io() in test_io.py
-    pass
+from python_utilities import dataframes, testing, helpers  # noqa
 
 
 def test_compress_dataframe():
@@ -26,9 +21,7 @@ def test_filter_using_multiindex():
 
     filter_df = test_df[test_df["product"] == "Prod_3"]
 
-    result_df = dataframes.filter_using_multiindex(test_df,
-                                                   filter_df,
-                                                   ["product"])
+    result_df = dataframes.filter_using_multiindex(test_df, filter_df, ["product"])
 
     assert result_df.equals(filter_df)
 
@@ -51,9 +44,7 @@ def test_merge_by_concat():
         [["Cat_1", "A"], ["Cat_2", "B"]], columns=["category", "mapping"]
     )
 
-    merged_df = dataframes.merge_by_concat(
-        test_df, small_df, index_cols=["category"]
-    )
+    merged_df = dataframes.merge_by_concat(test_df, small_df, index_cols=["category"])
 
     answer = ["A"] * 4 + ["B"] * 4
     result = list(merged_df["mapping"].values)
@@ -86,22 +77,16 @@ def test_index_features():
 
     answer_df = pd.DataFrame(
         [
-            [0, 0, 0, 0, 0],
-            [1, 0, 0, 0, 0],
-            [2, 0, 0, 0, 0],
-            [3, 0, 0, 0, 0],
-            [4, 1, 1, 0, 0],
-            [5, 1, 1, 0, 0],
-            [0, 1, 1, 0, 0],
-            [1, 1, 1, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [1, 1, 0, 0],
+            [1, 1, 0, 0],
+            [1, 1, 0, 0],
+            [1, 1, 0, 0],
         ],
-        columns=[
-            "datetime_index",
-            "category_index",
-            "product_index",
-            "state_index",
-            "store_index",
-        ],
+        columns=["category_index", "product_index", "state_index", "store_index",],
     )
 
     indexed_columns = [col for col in indexed_df.columns if "_index" in col]
@@ -114,46 +99,83 @@ def test_deindex_features():
 
     initial_df = pd.DataFrame(
         [
-            [0, 0, 0, 0, 0],
-            [1, 0, 0, 0, 0],
-            [2, 0, 0, 0, 0],
-            [3, 0, 0, 0, 0],
-            [4, 1, 1, 0, 0],
-            [5, 1, 1, 0, 0],
-            [0, 1, 1, 0, 0],
-            [1, 1, 1, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [1, 1, 0, 0],
+            [1, 1, 0, 0],
+            [1, 1, 0, 0],
+            [1, 1, 0, 0],
         ],
-        columns=[
-            "datetime_index",
-            "category_index",
-            "product_index",
-            "state_index",
-            "store_index",
-        ],
+        columns=["category_index", "product_index", "state_index", "store_index",],
     )
 
     result_df = dataframes.deindex_features(initial_df)
 
-    answer_df = testing.get_test_example()[
-        ["datetime", "category", "product", "state", "store"]
-    ]
+    answer_df = testing.get_test_example()[["category", "product", "state", "store"]]
 
     assert (result_df.values == answer_df.values).all()
 
 
 def test_convert_pandas_to_dask():
-    # tested as part of integration tests in test_helpers.py
-    pass
+    # also tested as part of integration tests in test_helpers.py
+
+    test_pd = testing.get_test_example()
+
+    test_dd = dataframes.convert_pandas_to_dask(test_pd)
+
+    assert helpers.is_dask_df(test_dd)
+
+
+def test_distribute_dask_df():
+    test_pd = testing.get_test_example()
+
+    test_dd = dataframes.convert_pandas_to_dask(test_pd)
+
+    test_dd = dataframes.distribute_dask_df(test_dd)
+    #TODO figure out what's going on with globals so this last line isn't necessary
+    assert isinstance(dataframes.profile_dask_client(), dict)
+
+
+def test_profile_dask_client():
+    assert isinstance(dataframes.profile_dask_client(), dict)
+
+
+def test_get_memory_usage():
+    test_pd = testing.get_test_example()
+    assert 3000 > dataframes.get_memory_usage(test_pd) > 1000
 
 
 def test_auto_convert_datetime():
-    test_df = testing.get_test_example()
-    assert test_df['datetime'].dtype in ['object']
+    test_df = testing.get_test_example(convert_dtypes=False)
+    assert test_df["datetime"].dtype in ["object"]
 
     test_df = dataframes.auto_convert_datetime(test_df)
 
-    assert helpers.is_datetime_series(test_df['datetime'])
+    assert helpers.is_datetime_series(test_df["datetime"])
 
+
+def test_get_columns_of_type():
+    test_pd = testing.get_test_example()
+    float_columns = ["float_col"]
+    int_columns = ["sales_int"]
+    object_cols = ["category", "product", "state", "store"]
+
+    assert dataframes.get_columns_of_type(test_pd, "float") == float_columns
+    assert dataframes.get_columns_of_type(test_pd, "integer") == int_columns
+
+    assert set(dataframes.get_columns_of_type(test_pd, "object")) == \
+        set(object_cols)
+
+
+def test_remove_blank_cols():
+    test_pd = testing.get_test_example()
+    test_pd["Unnamed"] = 0
+    assert "Unnamed" in list(test_pd.columns)
+
+    result = dataframes.remove_blank_cols(test_pd)
+    assert "Unnamed" not in list(result.columns)
 
 
 if __name__ == "__main__":
@@ -167,3 +189,8 @@ if __name__ == "__main__":
     test_index_features()
     test_deindex_features()
     test_auto_convert_datetime()
+    test_get_memory_usage()
+    test_convert_pandas_to_dask()
+    test_get_columns_of_type()
+    test_distribute_dask_df()
+    test_profile_dask_client()
