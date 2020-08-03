@@ -7,3 +7,6 @@ python_utilities/__pyache__
 *.pyc
 *.pyc
 tests/data/test_sample.csv
+*.dirlock
+*.lock
+*.lock
