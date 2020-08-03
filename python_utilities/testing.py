@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-def get_test_example():
+def get_test_example(convert_dtypes=True):
     """
     Return a made-up dataframe that can be used for testing purposes
     """
@@ -10,7 +10,7 @@ def get_test_example():
     column_names = [
         "datetime",
         "category",
-        "sale_int",
+        "sales_int",
         "product",
         "state",
         "store",
@@ -22,7 +22,7 @@ def get_test_example():
             ["2020-01-01", "Cat_1", 113, "Prod_3", "CA", "Store_1", -0.4],
             ["2020-01-02", "Cat_1", 10000, "Prod_3", "CA", "Store_1", -1],
             ["2020-01-03", "Cat_1", 102, "Prod_3", "CA", "Store_1", 1],
-            ["2020-01-04", "Cat_1", np.nan, "Prod_3", "CA", "Store_1", np.nan],
+            ["2020-01-04", "Cat_1", 123, "Prod_3", "CA", "Store_1", np.nan],
             ["2019-12-30", "Cat_2", 5, "Prod_4", "CA", "Store_1", -0.9],
             ["2019-12-31", "Cat_2", 800, "Prod_4", "CA", "Store_1", 0.8],
             ["2020-01-01", "Cat_2", 0, "Prod_4", "CA", "Store_1", np.nan],
@@ -30,6 +30,10 @@ def get_test_example():
         ],
         columns=column_names,
     )
+
+    if convert_dtypes:
+        example["datetime"] = pd.to_datetime(example["datetime"])
+        example["sales_int"] = example['sales_int'].astype('int')
 
     return example
 
