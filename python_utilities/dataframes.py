@@ -224,6 +224,8 @@ def convert_pandas_to_dask(df, npartitions=4, partition_size="100MB",
     lazy evaluation that can be prompted using .compute() or .persist()
     """
 
+    # Some cool code change
+
     dask_df = dd.from_pandas(df, npartitions=npartitions)
 
     if partition_size:
