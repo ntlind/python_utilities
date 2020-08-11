@@ -80,7 +80,8 @@ def test_fill_missing_timeseries():
 
     grouping_cols = ['category', 'product', 'state', 'store']
     result = timeseries.fill_missing_timeseries(test_pd, 
-                                                grouping_cols=grouping_cols)
+                                                grouping_cols=grouping_cols,
+                                                datetime_col = 'datetime')
     answer = pd.to_datetime([
         '2019-12-30', 
         '2019-12-31', 
