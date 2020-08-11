@@ -20,7 +20,7 @@ def fill_missing_timeseries(pandas_df: pd.DataFrame, grouping_cols,
     """
 
     assert datetime_col in pandas_df.columns
-    assert is_datetime_series(pandas_df[datetime_col])
+    assert helpers.is_datetime_series(pandas_df[datetime_col])
 
     filled_pd = (
         pandas_df.set_index(datetime_col)
