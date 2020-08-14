@@ -183,11 +183,11 @@ def test_remove_blank_cols():
     hierarchy = ['category', 'product', 'state', 'store']
     
     # test 1: 2-day rolling average
-    rolling_mean_df = feature_engineering.calc_rolling_agg(df=input_df,
-                                                           hierarchy=hierarchy, 
-                                                           rolling_window=2, 
-                                                           target_var='sales_int', 
-                                                           agg_func='mean')
+    rolling_mean_df = dataframes.calc_rolling_agg(df=input_df,
+                                                  hierarchy=hierarchy, 
+                                                  rolling_window=2, 
+                                                  target_var='sales_int', 
+                                                  agg_func='mean')
     
     answer = pd.Series([
         113,
@@ -204,11 +204,11 @@ def test_remove_blank_cols():
 
 
     # test 2: three-day rolling average    
-    rolling_mean_df = feature_engineering.calc_rolling_agg(df=input_df,
-                                                           hierarchy=hierarchy, 
-                                                           rolling_window=3, 
-                                                           target_var='sales_int', 
-                                                           agg_func='mean')
+    rolling_mean_df = dataframes.calc_rolling_agg(df=input_df,
+                                                  hierarchy=hierarchy, 
+                                                  rolling_window=3, 
+                                                  target_var='sales_int', 
+                                                  agg_func='mean')
 
     answer = pd.Series([
         113,
