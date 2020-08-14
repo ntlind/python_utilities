@@ -21,7 +21,9 @@ def test_filter_using_multiindex():
 
     filter_df = test_df[test_df["product"] == "Prod_3"]
 
-    result_df = dataframes.filter_using_multiindex(test_df, filter_df, ["product"])
+    result_df = dataframes.filter_using_multiindex(test_df, 
+                                                   filter_df,
+                                                   ["product"])
 
     assert result_df.equals(filter_df)
 
@@ -44,7 +46,8 @@ def test_merge_by_concat():
         [["Cat_1", "A"], ["Cat_2", "B"]], columns=["category", "mapping"]
     )
 
-    merged_df = dataframes.merge_by_concat(test_df, small_df, index_cols=["category"])
+    merged_df = dataframes.merge_by_concat(test_df, small_df,
+                                           index_cols=["category"])
 
     answer = ["A"] * 4 + ["B"] * 4
     result = list(merged_df["mapping"].values)
@@ -86,7 +89,8 @@ def test_index_features():
             [1, 1, 0, 0],
             [1, 1, 0, 0],
         ],
-        columns=["category_index", "product_index", "state_index", "store_index",],
+        columns=["category_index", "product_index", 
+                 "state_index", "store_index"],
     )
 
     indexed_columns = [col for col in indexed_df.columns if "_index" in col]
@@ -108,12 +112,14 @@ def test_deindex_features():
             [1, 1, 0, 0],
             [1, 1, 0, 0],
         ],
-        columns=["category_index", "product_index", "state_index", "store_index",],
+        columns=["category_index", "product_index", 
+                 "state_index", "store_index"],
     )
 
     result_df = dataframes.deindex_features(initial_df)
 
-    answer_df = testing.get_test_example()[["category", "product", "state", "store"]]
+    answer_df = testing.get_test_example()[["category", "product", 
+                                            "state", "store"]]
 
     assert (result_df.values == answer_df.values).all()
 
@@ -134,7 +140,7 @@ def test_distribute_dask_df():
     test_dd = dataframes.convert_pandas_to_dask(test_pd)
 
     test_dd = dataframes.distribute_dask_df(test_dd)
-    #TODO figure out what's going on with globals so this last line isn't necessary
+# TODO fix globals so this isn't necessary
     assert isinstance(dataframes.profile_dask_client(), dict)
 
 
@@ -176,9 +182,9 @@ def test_remove_blank_cols():
 
     result = dataframes.remove_blank_cols(test_pd)
     assert "Unnamed" not in list(result.columns)
-    
-    
- def test_calc_rolling_agg():
+
+
+def test_calc_rolling_agg():
     input_df = testing.get_test_example()
     hierarchy = ['category', 'product', 'state', 'store']
     

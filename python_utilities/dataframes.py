@@ -225,7 +225,6 @@ def convert_pandas_to_dask(df, npartitions=4, partition_size="100MB",
     lazy evaluation that can be prompted using .compute() or .persist()
     """
 
-
     dask_df = dd.from_pandas(df, npartitions=npartitions)
 
     if partition_size:
@@ -247,20 +246,22 @@ def auto_convert_datetime(df):
     return df
 
 
+def calc_rolling_agg(df, target_var, rolling_window, 
+                     hierarchy, agg_func="mean", min_periods=1):
+    """
+    Calculates rolling aggregated count of orders by rolling window timeframe.
+    This function assumes that ther aren't any time gaps within your hierarchy.
+    """
+    def rolling_calc(df, calc_col, rolling_window, agg_func):
+        column_name = f'{agg_func}_{rolling_window}_{target_var}'
 
-def calc_rolling_agg(df, target_var, rolling_window, hierarchy, agg_func="mean", min_periods=1):
-  """
-  Calculates rolling aggregated count of orders by rolling window timeframe.
-  This function assumes that you've correctly resampled your data (no time gaps within a given hierarchy).
-  """
-  def rolling_calc(df, calc_col, rolling_window, agg_func):
-    column_name = f'{agg_func}_{rolling_window}_{target_var}'
+        df[column_name] = df[calc_col].rolling(window=rolling_window, 
+                                               min_periods=min_periods)\
+                                      .agg(agg_func)
+                                
+        return df
 
-    df[column_name] = df[calc_col].rolling(window=rolling_window, min_periods=min_periods)\
-                                  .agg(agg_func)
-                                  
-    return df
+    rolling_df = df.groupby(hierarchy).apply(rolling_calc, target_var, 
+                                             rolling_window, agg_func)
 
-  rolling_df = df.groupby(hierarchy).apply(rolling_calc, target_var, rolling_window, agg_func)
-  
-  return rolling_df
+    return rolling_df
