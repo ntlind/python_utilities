@@ -176,6 +176,53 @@ def test_remove_blank_cols():
 
     result = dataframes.remove_blank_cols(test_pd)
     assert "Unnamed" not in list(result.columns)
+    
+    
+ def test_calc_rolling_agg():
+    input_df = testing.get_test_example()
+    hierarchy = ['category', 'product', 'state', 'store']
+    
+    # test 1: 2-day rolling average
+    rolling_mean_df = feature_engineering.calc_rolling_agg(df=input_df,
+                                                           hierarchy=hierarchy, 
+                                                           rolling_window=2, 
+                                                           target_var='sales_int', 
+                                                           agg_func='mean')
+    
+    answer = pd.Series([
+        113,
+        (10000 + 113)/2,
+        (10000 + 102)/2,
+        (102 + 123)/2,
+        5,
+        (800 + 5)/2,
+        (800 + 0)/2,
+        (0 + -20)/2
+    ])
+    result = (rolling_mean_df['mean_2_sales_int'])
+    assert (answer == result).all(), print(answer, result, input_df) 
+
+
+    # test 2: three-day rolling average    
+    rolling_mean_df = feature_engineering.calc_rolling_agg(df=input_df,
+                                                           hierarchy=hierarchy, 
+                                                           rolling_window=3, 
+                                                           target_var='sales_int', 
+                                                           agg_func='mean')
+
+    answer = pd.Series([
+        113,
+        (10000 + 113)/2,
+        (10000 + 102 + 113)/3,
+        (10000 + 102 + 123)/3,
+        5,
+        (800 + 5)/2,
+        (800 + 5 + 0)/3,
+        (0 + -20 + 800)/3
+    ])
+
+    result = (rolling_mean_df['mean_3_sales_int'])
+    assert (answer == result).all(), print(answer, result, input_df) 
 
 
 if __name__ == "__main__":
@@ -194,3 +241,4 @@ if __name__ == "__main__":
     test_get_columns_of_type()
     test_distribute_dask_df()
     test_profile_dask_client()
+    test_calc_rolling_agg()
