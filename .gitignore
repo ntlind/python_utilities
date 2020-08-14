@@ -1,13 +1,8 @@
 .vscode/
 mappings/
 quick_saves/
-python_utilities/__pycache__/*
+__pycache__/
 *.pkl
-*.pyc
-*.pyc
-*.pyc
-tests/data/test_sample.csv
+*.csv
 *.dirlock
 *.lock
-*.lock
-*.pyc
