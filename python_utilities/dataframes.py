@@ -267,14 +267,42 @@ def calc_rolling_agg(df, target_var, rolling_window,
     return rolling_df
 
 
-def mask_outliers(df, target_var, number_of_stds):
+def flag_outliers(df, target_var, number_of_stds, grouping_cols=None):
     """
-    Create a row-wise mask to filter-out outliers based on target_var 
+    Create a row-wise mask to filter-out outliers based on target_var. 
+    Optionally allows you to filter outliers by group for hier. data.
     """
-    mean_val = df[target_var].mean() 
-    std_val = df[target_var].std()
+    def flag_outliers_within_groups(df, target_var, 
+                                    grouping_cols, number_of_stds):
+        groups = df.groupby(grouping_cols)
+        means = groups[target_var].transform('mean')
+        stds = groups[target_var].transform('std')
 
-    upper_bound = (mean_val + (std_val * number_of_stds))
-    lower_bound = (mean_val - (std_val * number_of_stds))
-    
-    return (df[target_var] > lower_bound) & (df[target_var] < upper_bound)
+        upper_bound = means + stds * number_of_stds
+        lower_bound = means - stds * number_of_stds
+
+        return df[target_var].between(lower_bound, upper_bound)
+
+    def flag_outliers_without_groups(df, target_var, number_of_stds):
+        
+        mean_val = df[target_var].mean() 
+        std_val = df[target_var].std()
+
+        upper_bound = (mean_val + (std_val * number_of_stds))
+        lower_bound = (mean_val - (std_val * number_of_stds))
+        
+        return (df[target_var] > lower_bound) & (df[target_var] < upper_bound)
+        
+    if grouping_cols:
+        mask = flag_outliers_within_groups(
+            df=df, target_var=target_var, 
+            number_of_stds=number_of_stds, grouping_cols=grouping_cols
+            )
+
+    else:
+        mask = flag_outliers_without_groups(
+                df=df, target_var=target_var, 
+                number_of_stds=number_of_stds
+                )
+
+    return mask
