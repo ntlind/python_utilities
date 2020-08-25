@@ -265,3 +265,16 @@ def calc_rolling_agg(df, target_var, rolling_window,
                                              rolling_window, agg_func)
 
     return rolling_df
+
+
+def mask_outliers(df, target_var, number_of_stds):
+    """
+    Create a row-wise mask to filter-out outliers based on target_var 
+    """
+    mean_val = df[target_var].mean() 
+    std_val = df[target_var].std()
+
+    upper_bound = (mean_val + (std_val * number_of_stds))
+    lower_bound = (mean_val - (std_val * number_of_stds))
+    
+    return (df[target_var] > lower_bound) & (df[target_var] < upper_bound)

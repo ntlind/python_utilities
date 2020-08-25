@@ -141,4 +141,3 @@ def run_function_in_parallel(func, t_split):
     pool.close()
     pool.join()
     return df
-
