@@ -24,6 +24,8 @@ def set_plot_params(fig_size=(10, 5), label_size=12, font_size=11,
     plt.rcParams["axes.labelweight"] = label_weight
     
     plt.tick_params(axis='x', which='both', bottom=False, top=False)
+    plt.xticks(rotation=45)
+
 
 
 def plot_grouped_lineplot(df, grouping_col, time_var, target_var, 
