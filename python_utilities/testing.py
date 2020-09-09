@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
+import pytest
 
 
+@pytest.mark.skip(reason="shortcut for default pandas behavior")
 def get_test_example(convert_dtypes=True):
     """
     Return a made-up dataframe that can be used for testing purposes
@@ -38,6 +40,7 @@ def get_test_example(convert_dtypes=True):
     return example
 
 
+@pytest.mark.skip(reason="shortcut for default profiler")
 def profile_runtime(func):
     """
     Decorator function you can use to profile a bunch of nested functions.
@@ -66,6 +69,7 @@ def profile_runtime(func):
     return wrap
 
 
+@pytest.mark.skip(reason="shortcut for default behavior")
 def profile_memory_usage(func, *args, **kwargs):
     """
     Profile the amount of memory used in a python function

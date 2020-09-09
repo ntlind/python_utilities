@@ -1,8 +1,10 @@
 import pandas as pd
 import numpy as np
 import dask.dataframe as dd
+import pytest
 
 
+@pytest.mark.skip(reason="shortcut for default behavior")
 def make_dir(file_path):
     """
     Create a new directory at a given path
@@ -12,6 +14,7 @@ def make_dir(file_path):
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
 
+@pytest.mark.skip(reason="shortcut for default behavior")
 def list_files_in_directory(path):
     """
     Get a list of files within a given directory
@@ -21,6 +24,7 @@ def list_files_in_directory(path):
     return glob.glob(path + "/*")
 
 
+@pytest.mark.skip(reason="shortcut for default behavior")
 def remove_files_in_dir(path):
     """
     Delete all files within a directory

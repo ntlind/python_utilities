@@ -231,6 +231,35 @@ def test_calc_rolling_agg():
     assert (answer == result).all(), print(answer, result, input_df) 
 
 
+def test_create_outlier_mask():
+    input_df = testing.get_test_example()
+
+    # use custom sales column since the outliers are too pronounced
+    input_df['sales_int'] = [4, 5, 1, 2, 4, 6, 100, 4]
+
+    # test 1: flag outliers where a sales value is greater than two standard deviations for each product
+    grouped_flag_mask = dataframes.create_outlier_mask(
+        input_df,
+        target_var='sales_int', 
+        grouping_cols='product', 
+        number_of_stds=1
+        )
+
+    answer = [True, False, False, True, True, True, False, True]
+    assert((grouped_flag_mask == answer).all())
+
+
+    # test 2: flag outliers for salves overall
+    flag_mask = dataframes.create_outlier_mask(
+        input_df,
+        target_var='sales_int',
+        number_of_stds=1
+        )
+
+    answer = [True]*6 + [False, True]
+    assert((flag_mask == answer).all())
+
+
 if __name__ == "__main__":
     test_remove_blank_cols()
     test_compress_dataframe()
@@ -248,3 +277,4 @@ if __name__ == "__main__":
     test_distribute_dask_df()
     test_profile_dask_client()
     test_calc_rolling_agg()
+    test_create_outlier_mask()

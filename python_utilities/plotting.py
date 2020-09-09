@@ -1,22 +1,24 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
+import pytest
 
 
+@pytest.mark.skip(reason="shortcut for default behavior")
 def set_plot_params(fig_size=(10, 5), label_size=12, font_size=11, 
                     font_type='Arial', label_weight='bold'):
 
     """
     Set default aesthetic parameters for all seaborn plots.
     """
-            
+
     plt.style.use('fivethirtyeight')
-    
+
     plt.rcParams['axes.facecolor'] = 'white'
     plt.rcParams['legend.facecolor'] = 'white'
     plt.rcParams['figure.facecolor'] = 'white'
-    
-    plt.figure(figsize=fig_size)
-    
+
+    plt.rcParams["figure.figsize"] = fig_size
+
     plt.rcParams["font.size"] = font_size
     plt.rcParams["font.family"] = font_type
 
@@ -27,7 +29,7 @@ def set_plot_params(fig_size=(10, 5), label_size=12, font_size=11,
     plt.xticks(rotation=45)
 
 
-
+@pytest.mark.skip(reason="no way to test plots")
 def plot_grouped_lineplot(df, grouping_col, time_var, target_var, 
                           title, y_title, x_title, fig_size=(10, 8), 
                           date_format=None, estimator='mean', *args, **kwargs):
@@ -53,7 +55,8 @@ def plot_grouped_lineplot(df, grouping_col, time_var, target_var,
     
     plt.show()
 
-        
+
+@pytest.mark.skip(reason="no way to test plots")
 def split_plot_by_group(df, split_col, n_plots, 
                         plotting_func, *args, **kwargs):
     """
@@ -68,6 +71,7 @@ def split_plot_by_group(df, split_col, n_plots,
         plotting_func(df=sub_df, title=group, *args, **kwargs)
 
 
+@pytest.mark.skip(reason="no way to test plots")
 def plot_grouped_distribution(df, grouping_col, x_var, y_var, 
                               title, y_title, x_title, fig_size=(10, 8), 
                               plotting_func=sns.boxplot, *args, **kwargs):
@@ -82,9 +86,9 @@ def plot_grouped_distribution(df, grouping_col, x_var, y_var,
 
     ax.set(xlabel=x_title, ylabel=y_title)  
     plt.title(title)
-     
+
     if grouping_col:
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, 
                    frameon=False, borderaxespad=0.)
-    
+
     plt.show()

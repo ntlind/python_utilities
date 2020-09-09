@@ -3,6 +3,7 @@ import numpy as np
 import dask.dataframe as dd
 import os
 from python_utilities import helpers, io
+import pytest
 
 
 def compress_dataframe(df):
@@ -193,6 +194,7 @@ def deindex_features(df, name="index_mapping"):
     return deindexed_df
 
 
+@pytest.mark.skip(reason="requires cluster to test")
 def distribute_dask_df(dask_df):
     """
     Distribute a dask dataframe over a client that's accessible via
@@ -208,6 +210,7 @@ def distribute_dask_df(dask_df):
     return dask_df
 
 
+@pytest.mark.skip(reason="requires cluster to test")
 def profile_dask_client():
     """
     Print scheduler statistics
@@ -217,6 +220,7 @@ def profile_dask_client():
     return DASK_CLIENT.profile()
 
 
+@pytest.mark.skip(reason="shortcut for default dask behavior")
 def convert_pandas_to_dask(df, npartitions=4, partition_size="100MB",
                            *args, **kwargs):
 
@@ -267,7 +271,7 @@ def calc_rolling_agg(df, target_var, rolling_window,
     return rolling_df
 
 
-def flag_outliers(df, target_var, number_of_stds, grouping_cols=None):
+def create_outlier_mask(df, target_var, number_of_stds, grouping_cols=None):
     """
     Create a row-wise mask to filter-out outliers based on target_var. 
     Optionally allows you to filter outliers by group for hier. data.
