@@ -5,7 +5,6 @@ import os
 from python_utilities import helpers, io
 import pytest
 
-#Test
 
 def compress_dataframe(df):
     """
