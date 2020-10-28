@@ -11,7 +11,7 @@ This module contains my most commonly-used python functions, split into various 
 - `io`: saving and loading pandas DataFrames, dask DataFrames, and dicts
 - `dataframes`: filtering, transforming, and compressing pandas and dask dataframes
 - `timeseries`: datetime-specific functions for handling timeseries data
-- `helpers`: various utility functions, including is_ checks and OS shortcuts
+- `utils`: various utility functions, including is_ checks and OS shortcuts
 - `testing`: sample dataframes and profilers that I use in testing
 
 I also use this repo to review CI/CD best practices with my team, including automated testing using [GitHub Actions](https://github.com/features/actions) and badging as a forcing function.
@@ -20,3 +20,5 @@ I also use this repo to review CI/CD best practices with my team, including auto
 ## Installation
 
 `$ git clone https://www.github.com/ntlind/python_utilities`
+
+

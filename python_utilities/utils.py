@@ -102,6 +102,20 @@ def ensure_is_list(obj):
         return obj
 
 
+#TODO write tests
+def concat_dicts(list_of_dicts):
+    """
+    Concatenate a list of dictionaries together into a single dictionary
+    """
+    output_dict = list_of_dicts.pop(0)
+
+    for dictionary in list_of_dicts:
+        output_dict.update(dictionary)
+
+    return output_dict
+
+
+
 def correct_suffixes_in_list(input_pd, lst, substring="_index"):
     """
     Remove suffixes from a list of column names if 

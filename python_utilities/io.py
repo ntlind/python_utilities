@@ -2,7 +2,7 @@ import os
 import dask.dataframe as dd
 import pandas as pd  
 import numpy as np
-from python_utilities import helpers
+from python_utilities import utils
 
 
 def _get_pd_io_methods():
@@ -62,7 +62,7 @@ def save_df(df, path, file_format='.pkl', pkg='pandas', *args, **kwargs):
     if file_format not in path:
         path = path + file_format
     
-    helpers.make_dir(path)
+    utils.make_dir(path)
 
     save_func = methods_dict[file_format]['write']
     save_func(df, path, *args, **kwargs)

@@ -1,9 +1,10 @@
 import sys
 import pandas as pd
+import numpy as np
 import os
 
 sys.path.append(os.path.join(os.path.dirname(sys.path[0])))
-from python_utilities import dataframes, testing, helpers  # noqa
+from python_utilities import dataframes, testing, utils  # noqa
 
 
 def test_compress_dataframe():
@@ -69,7 +70,7 @@ def test_concatenate_dfs():
 def test_print_memory_usage():
     test_df = testing.get_test_example()
     memory = dataframes.print_memory_usage(test_df)
-    assert helpers.is_string(memory)
+    assert utils.is_string(memory)
     assert memory[-2:] == "KB"
 
 
@@ -125,13 +126,13 @@ def test_deindex_features():
 
 
 def test_convert_pandas_to_dask():
-    # also tested as part of integration tests in test_helpers.py
+    # also tested as part of integration tests in test_utils.py
 
     test_pd = testing.get_test_example()
 
     test_dd = dataframes.convert_pandas_to_dask(test_pd)
 
-    assert helpers.is_dask_df(test_dd)
+    assert utils.is_dask_df(test_dd)
 
 
 def test_distribute_dask_df():
@@ -159,7 +160,7 @@ def test_auto_convert_datetime():
 
     test_df = dataframes.auto_convert_datetime(test_df)
 
-    assert helpers.is_datetime_series(test_df["datetime"])
+    assert utils.is_datetime_series(test_df["datetime"])
 
 
 def test_get_columns_of_type():
@@ -208,12 +209,11 @@ def test_calc_rolling_agg():
     result = (rolling_mean_df['mean_2_sales_int'])
     assert (answer == result).all(), print(answer, result, input_df) 
 
-
-    # test 2: three-day rolling average    
+    # test 2: three-day rolling average
     rolling_mean_df = dataframes.calc_rolling_agg(df=input_df,
-                                                  hierarchy=hierarchy, 
-                                                  rolling_window=3, 
-                                                  target_var='sales_int', 
+                                                  hierarchy=hierarchy,
+                                                  rolling_window=3,
+                                                  target_var='sales_int',
                                                   agg_func='mean')
 
     answer = pd.Series([
@@ -237,17 +237,16 @@ def test_create_outlier_mask():
     # use custom sales column since the outliers are too pronounced
     input_df['sales_int'] = [4, 5, 1, 2, 4, 6, 100, 4]
 
-    # test 1: flag outliers where a sales value is greater than two standard deviations for each product
+    # test 1: flag outliers where a sales value is greater than two st devs.
     grouped_flag_mask = dataframes.create_outlier_mask(
         input_df,
-        target_var='sales_int', 
+        target_var='sales_int',
         grouping_cols='product', 
         number_of_stds=1
         )
 
     answer = [True, False, False, True, True, True, False, True]
     assert((grouped_flag_mask == answer).all())
-
 
     # test 2: flag outliers for salves overall
     flag_mask = dataframes.create_outlier_mask(
@@ -260,7 +259,72 @@ def test_create_outlier_mask():
     assert((flag_mask == answer).all())
 
 
+def test_check_key_mismatches():
+    keys = ['product', 'state', 'store']
+    
+    first_test_df = testing.get_test_example()
+    second_test_df = pd.DataFrame(
+           [
+            ["Prod_3", "CA", "Store_1", 2],
+            ["Prod_3", "TX", "Store_1", 23.12],
+           ],
+           columns=keys + ['price']
+    )
+
+    answer = pd.DataFrame(
+        [
+            ["Prod_3", "CA", "Store_1", 'both'],
+            ["Prod_4", "CA", "Store_1", 'left_only'],
+            ["Prod_3", "TX", "Store_1", 'right_only'],
+
+        ],
+        columns=['product', 'stage', 'store', '_merge']
+    )
+
+    result = dataframes.check_key_mismatches(
+        df1=first_test_df,
+        df2=second_test_df,
+        keys=keys,
+        )
+
+    assert np.array_equal(answer.values, result.values)
+
+
+def test_count_elements_across_columns():
+    input_df = pd.DataFrame(
+        [["32", "12"], ["12", None], ["17", "21", "41"], ["41"], ["41"]],
+        columns=["class00", "class01", "class002"]
+    )
+
+    expected = pd.Series(
+        [3, 2, 1, 1, 1],
+        index=["41", "12", "21", "32", "17"]
+    )
+    
+    result = dataframes.count_elements_across_columns(input_df)
+    
+    assert (result.values == expected.values).all()
+
+
+
+def test_expand_delimited_multiclass_series():
+    input_series = pd.Series(
+        ["32_12", "12", "17_21_41"],
+        name="class"
+    )
+
+    expected = pd.DataFrame(
+        [["32", "12"], ["12", None], ["17", "21", "41"]],
+        columns=["class00", "class01", "class02"]
+    )
+
+    result = dataframes.expand_delimited_multiclass_series(input_series, "_")
+
+    assert result.equals(expected)
+
+
 if __name__ == "__main__":
+    test_check_key_mismatches()
     test_remove_blank_cols()
     test_compress_dataframe()
     test_filter_using_multiindex()
@@ -278,3 +342,5 @@ if __name__ == "__main__":
     test_profile_dask_client()
     test_calc_rolling_agg()
     test_create_outlier_mask()
+    test_count_elements_across_columns()
+    test_expand_delimited_multiclass_series()

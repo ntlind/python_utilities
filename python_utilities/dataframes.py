@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import dask.dataframe as dd
 import os
-from python_utilities import helpers, io
+from python_utilities import utils, io
 import pytest
 
 
@@ -80,7 +80,7 @@ def print_memory_usage(pandas_df):
     """
     Returns the number of bytes used by a pd df in a formatted string
     """
-    return helpers.format_bytes(get_memory_usage(pandas_df))
+    return utils.format_bytes(get_memory_usage(pandas_df))
 
 
 def merge_by_concat(big_df, small_df, index_cols, how="left"):
@@ -101,7 +101,7 @@ def concatenate_dfs(df1, df2):
     Safely concatenates dataframes, handling for the different treatment 
     between panda and dask implementations
     """
-    from python_utilities.helpers import is_dask_df, is_pandas_df
+    from python_utilities.utils import is_dask_df, is_pandas_df
 
     if is_pandas_df(df1) & is_pandas_df(df2):
         return pd.concat([df1, df2])
@@ -310,3 +310,52 @@ def create_outlier_mask(df, target_var, number_of_stds, grouping_cols=None):
                 )
 
     return mask
+
+
+def check_key_mismatches(df1, df2, keys):
+    """
+    Check which sets of keys aren't missing between dataframes
+    """
+    merged_df = df1.copy()\
+                   .merge(df2, how='outer', on=keys, indicator=True)
+
+    keys_df = merged_df[keys + ['_merge']]
+
+    count_summary = pd.concat([
+            keys_df['_merge'].value_counts(),
+            keys_df['_merge'].value_counts(normalize=True),
+        ], axis=1)
+    count_summary.columns = ['counts', 'percentages']
+                    
+    print(count_summary)
+        
+    return keys_df.drop_duplicates()
+
+
+def count_elements_across_columns(pandas_df):
+    """
+    Given a dataframe of multiple input columns that you want to find the 
+    .value_count() of, return the count of each element across multiple columns
+    """
+
+    series_list = [
+        pandas_df[col].value_counts() for col in pandas_df.columns
+    ]
+
+    return pd.concat(series_list, axis=1, sort=False)\
+             .sum(axis=1)\
+             .sort_values(ascending=False)
+
+
+def expand_delimited_multiclass_series(series, delim):
+    """
+    Given a multi-class column (e.g., ...]), return an expanded set of columns
+    split on the delimiter. Mostly used for multiclass image classification.
+    """
+    expanded_columns = series.str.split("_", expand=True)
+    expanded_columns.columns = [
+        series.name + "{:02d}".format(x) for x in expanded_columns.columns
+                                                                  .values
+    ]
+
+    return expanded_columns

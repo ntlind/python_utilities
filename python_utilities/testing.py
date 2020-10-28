@@ -40,6 +40,32 @@ def get_test_example(convert_dtypes=True):
     return example
 
 
+@pytest.mark.skip(reason="shortcut for default timer")
+def print_runtime(func, create_global_dict=True):
+    """
+    A timer decorator that creates a global dict for reporting times across multiple runs
+    """
+    def function_timer(*args, **kwargs):
+        """
+        A nested function for timing other functions
+        """
+        import time
+        from collections import defaultdict
+
+        start = time.time()
+        value = func(*args, **kwargs)
+        end = time.time()
+
+        runtime = end - start
+
+        print(f"The runtime for {func.__name__} took {round(runtime, 2)} \
+            seconds to complete")
+
+        return value
+
+    return function_timer
+
+
 @pytest.mark.skip(reason="shortcut for default profiler")
 def profile_runtime(func):
     """
@@ -77,6 +103,20 @@ def profile_memory_usage(func, *args, **kwargs):
     from memory_profiler import profile
 
     return profile(func(*args, **kwargs))
+
+
+@pytest.mark.skip(reason="shortcut for default behavior")
+def profile_line_runtime(func, *args, **kwargs):
+    """
+    Profile the runtime for individual lines in a given func
+    """
+    from line_profiler import LineProfiler
+
+    lp = LineProfiler()
+    lp_wrapper = lp(func)
+    lp_wrapper(*args, **kwargs)
+    
+    return lp.print_stats()
 
 
 def exp_increase_df_size(df, n):
