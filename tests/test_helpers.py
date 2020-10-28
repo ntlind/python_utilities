@@ -1,8 +1,5 @@
-import sys
-import os
 import pandas as pd
 
-sys.path.append(os.path.join(os.path.dirname(sys.path[0])))
 from python_utilities import utils, testing, dataframes # noqa
 
 
